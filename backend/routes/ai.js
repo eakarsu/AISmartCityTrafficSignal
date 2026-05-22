@@ -499,4 +499,191 @@ router.post('/vendor-quality-score', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ──────────────────────────────────────────────────────────────
+// Pass 7 — full backlog implementation
+// All 5 new verbs are advisory-only. The route layer stamps
+// `requires_operator_approval: true` on every output. No verb
+// here mutates signal_plans / controllers / pushes to field.
+// ──────────────────────────────────────────────────────────────
+
+const ADVISORY_STAMP = {
+  advisory: true,
+  requires_operator_approval: true,
+  auto_activate: false,
+  source: 'AI recommendation — not auto-pushed to controllers',
+};
+
+function stampAdvisory(result) {
+  if (!result || typeof result !== 'object') return result;
+  return { ...result, ...ADVISORY_STAMP };
+}
+
+// pass 7 sample fills
+SAMPLES['congestion-forecast'] = [
+  { label: 'Citywide 60 min horizon',            values: { scope: 'citywide', horizon_minutes: 60, notes: 'AM peak buildup expected' } },
+  { label: 'Downtown Core Corridor — 30 min',    values: { scope: 'Downtown Core Corridor', horizon_minutes: 30, notes: 'Lunch peak' } },
+  { label: 'Airport Approach — 45 min',          values: { scope: 'Airport Approach', horizon_minutes: 45, notes: 'Arrivals surge in 45 min' } },
+  { label: 'Stadium egress window — 90 min',     values: { scope: 'Stadium Blvd cluster', horizon_minutes: 90, notes: 'Game ends in 60 min' } },
+  { label: 'Highway 101 off-ramp cluster',       values: { scope: 'Highway 101 Off-ramp Cluster', horizon_minutes: 60, notes: 'PM peak spillback risk' } },
+];
+
+SAMPLES['signal-timing-optimize'] = [
+  { label: 'INT-001 — AM peak',                  values: { intersection_id: 'INT-001', time_of_day_window: 'AM peak 07:00-09:30', notes: 'Heavy NB-through demand' } },
+  { label: 'INT-002 — PM peak',                  values: { intersection_id: 'INT-002', time_of_day_window: 'PM peak 16:00-19:00', notes: 'WB-left overflow' } },
+  { label: 'INT-005 — University midday',        values: { intersection_id: 'INT-005', time_of_day_window: 'Midday 10:15-11:15', notes: 'Ped surge between classes' } },
+  { label: 'INT-009 — School arrival',           values: { intersection_id: 'INT-009', time_of_day_window: 'School arrival 07:35-08:10', notes: 'Extend Walk seconds?' } },
+  { label: 'INT-014 — Civic Center weekend',     values: { intersection_id: 'INT-014', time_of_day_window: 'Weekend events 11:00-22:00', notes: 'Event-mode baseline' } },
+];
+
+SAMPLES['emergency-preempt-sequence'] = [
+  { label: 'EMS to Hospital Way',                values: { ems_route_id: 'EMS-001', origin: 'Fire Station 3', destination: 'INT-007 Hospital Way', intersection_ids: 'INT-001,INT-002,INT-007' } },
+  { label: 'Ladder truck to fire scene',         values: { ems_route_id: 'EMS-002', origin: 'Fire Station 1', destination: 'INT-013 Greenway', intersection_ids: 'INT-001,INT-013' } },
+  { label: 'Ambulance from stadium',             values: { ems_route_id: 'EMS-003', origin: 'INT-006 Stadium Blvd', destination: 'INT-007 Hospital Way', intersection_ids: 'INT-006,INT-002,INT-007' } },
+  { label: 'Mutual aid from county',             values: { ems_route_id: 'EMS-004', origin: 'County line', destination: 'INT-010 Transit Hub', intersection_ids: 'INT-012,INT-010' } },
+  { label: 'Cardiac transport — code 3',         values: { ems_route_id: 'EMS-005', origin: 'INT-009 School St', destination: 'INT-007 Hospital Way', intersection_ids: 'INT-009,INT-002,INT-007' } },
+];
+
+SAMPLES['incident-response-coordinate'] = [
+  { label: 'Major collision Market & Main',      values: { incident_id: 'INC-0001', notes: 'Two-vehicle collision, full NB lane blockage 35 min' } },
+  { label: 'Flooded intersection Airport Rd',    values: { incident_id: 'INC-0005', notes: 'SB lanes under water; reroute transit and freight' } },
+  { label: 'Controller offline Industrial',      values: { incident_id: 'INC-0003', notes: 'Cabinet CAB-004 unreachable; signal flashing all-way' } },
+  { label: 'Queue spillback Hwy 101 off-ramp',   values: { incident_id: 'INC-0010', notes: 'PM peak spillback onto freeway shoulder' } },
+  { label: 'Ped struck at School St',            values: { incident_id: 'INC-0009', notes: 'Child struck on crosswalk; school dismissal in 20 min' } },
+];
+
+SAMPLES['equity-response-time'] = [
+  { label: 'Citywide neighborhood scan (default)', values: {} },
+  { label: 'Focus on low-income tracts',           values: { focus: 'low_income', notes: 'Filter to pct_low_income >= 30' } },
+  { label: 'Focus on no-vehicle tracts',           values: { focus: 'no_vehicle', notes: 'Filter to pct_no_vehicle >= 25' } },
+  { label: 'Focus on senior-heavy tracts',         values: { focus: 'senior', notes: 'Filter to pct_senior_65plus >= 18' } },
+  { label: 'Focus on school zones',                values: { focus: 'school', notes: 'Filter to neighborhoods touching school INT-009' } },
+];
+
+// 17. congestion-forecast
+router.post('/congestion-forecast', async (req, res) => {
+  try {
+    const { scope, horizon_minutes, notes } = req.body || {};
+    const horizon = Number(horizon_minutes) || 60;
+    const [metrics, detectors] = await Promise.all([
+      pool.query('SELECT * FROM performance_metrics ORDER BY id DESC LIMIT 60'),
+      pool.query('SELECT * FROM detectors ORDER BY id DESC LIMIT 60'),
+    ]);
+    const input = { scope: scope || 'citywide', horizon_minutes: horizon, notes, metrics: metrics.rows, detectors: detectors.rows };
+    const result = await ai.congestionForecast(input);
+    const stamped = stampAdvisory(result);
+    await record('congestion-forecast', { scope, horizon_minutes: horizon, notes }, stamped);
+    res.json(stamped);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 18. signal-timing-optimize
+router.post('/signal-timing-optimize', async (req, res) => {
+  try {
+    const { intersection_id, time_of_day_window, notes, demand_profile } = req.body || {};
+    if (!intersection_id) return res.status(400).json({ error: 'intersection_id is required' });
+    let intersection = null;
+    const ir = await pool.query('SELECT * FROM intersections WHERE intersection_id = $1 LIMIT 1', [intersection_id]);
+    intersection = ir.rows[0] || null;
+    const [plans, ped, detectors, metrics] = await Promise.all([
+      pool.query('SELECT * FROM signal_plans WHERE intersection_id = $1 ORDER BY id DESC LIMIT 5', [intersection_id]),
+      pool.query('SELECT * FROM pedestrian_phases WHERE intersection_id = $1 ORDER BY id DESC LIMIT 5', [intersection_id]),
+      pool.query('SELECT * FROM detectors WHERE intersection_id = $1 ORDER BY id DESC LIMIT 10', [intersection_id]),
+      pool.query('SELECT * FROM performance_metrics WHERE intersection_id = $1 ORDER BY id DESC LIMIT 10', [intersection_id]),
+    ]);
+    const input = {
+      intersection_id,
+      time_of_day_window: time_of_day_window || 'unspecified',
+      notes,
+      demand_profile: demand_profile || null,
+      intersection,
+      plans: plans.rows,
+      pedestrian_phases: ped.rows,
+      detectors: detectors.rows,
+      recent_metrics: metrics.rows,
+    };
+    const result = await ai.signalTimingOptimize(input);
+    const stamped = stampAdvisory(result);
+    await record('signal-timing-optimize', { intersection_id, time_of_day_window, notes }, stamped);
+    res.json(stamped);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 19. emergency-preempt-sequence
+router.post('/emergency-preempt-sequence', async (req, res) => {
+  try {
+    const { ems_route_id, origin, destination, intersection_ids, notes } = req.body || {};
+    let ints = [];
+    if (intersection_ids) {
+      const list = String(intersection_ids).split(',').map((s) => s.trim()).filter(Boolean);
+      if (list.length) {
+        const r = await pool.query('SELECT * FROM intersections WHERE intersection_id = ANY($1::varchar[])', [list]);
+        ints = r.rows;
+      }
+    }
+    if (!ints.length) {
+      const r = await pool.query('SELECT * FROM intersections ORDER BY id ASC LIMIT 6');
+      ints = r.rows;
+    }
+    const preempts = await pool.query('SELECT * FROM emergency_preemptions ORDER BY id DESC LIMIT 10');
+    const context = { ems_route_id, origin, destination, notes, intersections: ints, recent_preempts: preempts.rows };
+    const result = await ai.emergencyPreemptSequence(context);
+    const stamped = stampAdvisory(result);
+    await record('emergency-preempt-sequence', { ems_route_id, origin, destination, intersection_ids, notes }, stamped);
+    res.json(stamped);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 20. incident-response-coordinate
+router.post('/incident-response-coordinate', async (req, res) => {
+  try {
+    const { incident_id, notes } = req.body || {};
+    let incident = null;
+    if (incident_id) {
+      const r = await pool.query('SELECT * FROM incidents WHERE incident_id = $1 LIMIT 1', [incident_id]);
+      incident = r.rows[0] || null;
+    }
+    if (!incident) {
+      const r = await pool.query("SELECT * FROM incidents WHERE status IN ('open','investigating') ORDER BY id DESC LIMIT 1");
+      incident = r.rows[0] || { incident_id, type: 'unspecified', severity: 'medium', notes };
+    }
+    let intersection = null;
+    if (incident && incident.intersection_id) {
+      const r = await pool.query('SELECT * FROM intersections WHERE intersection_id = $1 LIMIT 1', [incident.intersection_id]);
+      intersection = r.rows[0] || null;
+    }
+    const [transit, plans] = await Promise.all([
+      pool.query('SELECT * FROM transit_priorities ORDER BY id DESC LIMIT 10'),
+      pool.query('SELECT * FROM signal_plans ORDER BY id DESC LIMIT 5'),
+    ]);
+    const context = { intersection, transit: transit.rows, plans: plans.rows, notes };
+    const result = await ai.incidentResponseCoordinate(incident, context);
+    const stamped = stampAdvisory(result);
+    await record('incident-response-coordinate', { incident_id, notes }, stamped);
+    res.json(stamped);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 21. equity-response-time
+router.post('/equity-response-time', async (req, res) => {
+  try {
+    const { focus, notes } = req.body || {};
+    const [neighborhoods, incidents, intersections] = await Promise.all([
+      pool.query('SELECT * FROM equity_neighborhoods ORDER BY id ASC'),
+      pool.query('SELECT incident_id, intersection_id, type, severity, opened_at, status FROM incidents ORDER BY id DESC LIMIT 200'),
+      pool.query('SELECT intersection_id, name, location FROM intersections ORDER BY id ASC LIMIT 50'),
+    ]);
+    const input = {
+      focus: focus || 'all',
+      notes,
+      neighborhoods: neighborhoods.rows,
+      recent_incidents: incidents.rows,
+      intersections: intersections.rows,
+    };
+    const result = await ai.equityResponseTime(input);
+    const stamped = stampAdvisory(result);
+    await record('equity-response-time', { focus, notes, neighborhood_count: neighborhoods.rows.length }, stamped);
+    res.json(stamped);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

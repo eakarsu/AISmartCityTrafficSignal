@@ -386,6 +386,116 @@ async function vendorQualityScore(vendorHistory = []) {
   return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', vendor_scores: [] });
 }
 
+// ──────────────────────────────────────────────────────────────
+// Pass 7 — full backlog implementation
+// ALL outputs that would auto-activate or push signal plans
+// must be advisory only with requires_operator_approval: true.
+// The route layer enforces stamping; the service layer enforces
+// schema and language ("advisory", "operator approval required").
+// ──────────────────────────────────────────────────────────────
+
+// 17. Congestion forecast (forward-looking demand / queue prediction)
+async function congestionForecast(input = {}) {
+  const sys = `${SYSTEM_PROMPT} Produce a forward-looking congestion forecast from recent performance metrics + detector history. ADVISORY ONLY — operator approval required before any plan change. Return strict JSON:
+{
+  "horizon_minutes": number,
+  "scope": string,
+  "forecast": [{ "intersection_id": string, "predicted_queue_length_m": number, "predicted_delay_sec": number, "predicted_volume_vph": number, "confidence": number, "drivers": [string] }],
+  "hotspots": [{ "intersection_id": string, "expected_lead_time_min": number, "severity": "low"|"medium"|"high" }],
+  "data_gaps": [string],
+  "advisory_actions": [{ "intersection_id": string, "suggested_action": string, "rationale": string }],
+  "summary": string
+}`;
+  const usr = `Forecast input:\n${JSON.stringify(input, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', forecast: [], hotspots: [] });
+}
+
+// 18. Signal-timing optimize (general optimizer over a demand profile)
+async function signalTimingOptimize(input = {}) {
+  const sys = `${SYSTEM_PROMPT} Generate split / cycle / offset recommendations for one intersection (or a small set) from a time-of-day demand profile. ADVISORY ONLY — do NOT auto-activate. Output must be a recommendation that an operator can review and approve. Return strict JSON:
+{
+  "intersection_id": string,
+  "time_of_day_window": string,
+  "recommended_cycle_length_sec": number,
+  "recommended_splits": [{ "phase": string, "current_seconds": number, "recommended_seconds": number, "rationale": string }],
+  "recommended_offset_sec": number,
+  "expected_delay_reduction_pct": number,
+  "expected_throughput_gain_pct": number,
+  "side_street_penalty_sec": number,
+  "rollback_trigger": string,
+  "confidence": number,
+  "summary": string
+}`;
+  const usr = `Optimizer input:\n${JSON.stringify(input, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', recommended_splits: [] });
+}
+
+// 19. Emergency-preempt sequence (corridor sequencer for an EMS route)
+async function emergencyPreemptSequence(routeContext = {}) {
+  const sys = `${SYSTEM_PROMPT} Sequence emergency preemption across a corridor for one EMS vehicle / route. ADVISORY ONLY — operator approval required. Do NOT autonomously push to controllers. Return strict JSON:
+{
+  "ems_route_id": string,
+  "origin": string,
+  "destination": string,
+  "sequence": [{ "intersection_id": string, "preempt_step": number, "lead_time_sec": number, "phase_to_hold_green": string, "expected_arrival_offset_sec": number, "conflicting_movements_to_clear": [string] }],
+  "total_estimated_savings_sec": number,
+  "conflicts_to_resolve": [{ "intersection_id": string, "conflict": string, "mitigation": string }],
+  "rollback_trigger": string,
+  "confidence": number,
+  "summary": string
+}`;
+  const usr = `EMS / route context:\n${JSON.stringify(routeContext, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', sequence: [] });
+}
+
+// 20. Incident-response coordinate (multi-domain playbook)
+async function incidentResponseCoordinate(incident, context = {}) {
+  const sys = `${SYSTEM_PROMPT} Produce a multi-domain incident response playbook covering signals, transit, diversion and public comms. ADVISORY ONLY — operator approval required before any plan activation. Return strict JSON:
+{
+  "incident_id": string,
+  "severity": "low"|"medium"|"high"|"critical",
+  "signals_actions": [{ "intersection_id": string, "action": string, "rationale": string }],
+  "transit_actions": [{ "route": string, "action": string, "rationale": string }],
+  "diversion_actions": [{ "from": string, "to": string, "via": string, "rationale": string }],
+  "communications_actions": [{ "audience": string, "message": string, "channel": string }],
+  "agencies_to_notify": [string],
+  "rollback_trigger": string,
+  "confidence": number,
+  "summary": string
+}`;
+  const usr = `Incident:\n${JSON.stringify(incident, null, 2)}\nContext:\n${JSON.stringify(context, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', signals_actions: [] });
+}
+
+// 21. Equity response time (per-neighborhood disparity score)
+async function equityResponseTime(input = {}) {
+  const sys = `${SYSTEM_PROMPT} Score neighborhood-level incident response-time disparity from incidents joined to intersection geo / neighborhood demographics. ADVISORY ONLY. Return strict JSON:
+{
+  "scored_neighborhoods": [{
+    "neighborhood_id": string,
+    "name": string,
+    "avg_response_minutes": number,
+    "incident_count": number,
+    "demographic_index": number,
+    "disparity_score": number,
+    "disparity_band": "equitable"|"watch"|"disparate"|"severely_disparate",
+    "rationale": string
+  }],
+  "citywide_avg_response_minutes": number,
+  "worst_disparities": [{ "neighborhood_id": string, "delta_minutes": number, "notes": string }],
+  "recommended_actions": [{ "neighborhood_id": string, "action": string, "rationale": string }],
+  "data_gaps": [string],
+  "summary": string
+}`;
+  const usr = `Equity input:\n${JSON.stringify(input, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', scored_neighborhoods: [] });
+}
+
 module.exports = {
   callOpenRouter,
   safeJsonParse,
@@ -405,4 +515,10 @@ module.exports = {
   workOrderDraft,
   performanceAnomaly,
   vendorQualityScore,
+  // pass 7
+  congestionForecast,
+  signalTimingOptimize,
+  emergencyPreemptSequence,
+  incidentResponseCoordinate,
+  equityResponseTime,
 };

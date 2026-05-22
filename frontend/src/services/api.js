@@ -150,6 +150,45 @@ export const aiWorkOrderDraft         = aiPost('work-order-draft');
 export const aiPerformanceAnomaly     = aiPost('performance-anomaly');
 export const aiVendorQualityScore     = aiPost('vendor-quality-score');
 
+// Pass 7 — full backlog AI verbs (advisory only)
+export const aiCongestionForecast        = aiPost('congestion-forecast');
+export const aiSignalTimingOptimize      = aiPost('signal-timing-optimize');
+export const aiEmergencyPreemptSequence  = aiPost('emergency-preempt-sequence');
+export const aiIncidentResponseCoordinate= aiPost('incident-response-coordinate');
+export const aiEquityResponseTime        = aiPost('equity-response-time');
+
+// Pass 7 — equity-by-neighborhood operator-curated dataset
+export const equityNeighborhoodsApi = crud('equity-neighborhoods');
+
+// Pass 7 — public unauthenticated dashboard (no Bearer token needed; raw fetch)
+export const getPublicDashboard = async () => {
+  const res = await fetch(`${API_BASE}/public/dashboard`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+};
+export const getPublicEquitySnapshot = async () => {
+  const res = await fetch(`${API_BASE}/public/dashboard/equity-snapshot`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+};
+
+// Pass 7 — NEEDS-CREDS integration stubs (all return 503 by design)
+export const integrationsApi = {
+  index:   () => request('/integrations'),
+  ntcipStatus:    (id) => request(`/integrations/ntcip/controllers/${encodeURIComponent(id)}/status`),
+  ntcipPushPlan:  (id, body) => request(`/integrations/ntcip/controllers/${encodeURIComponent(id)}/push-plan`, {
+    method: 'POST', body: JSON.stringify(body || {}),
+  }),
+  cadInbound:     (body) => request('/integrations/cad/inbound', {
+    method: 'POST', body: JSON.stringify(body || {}),
+  }),
+  v2xSpat: () => request('/integrations/v2x/spat'),
+  v2xMap:  () => request('/integrations/v2x/map'),
+  censusAcs: () => request('/integrations/census/acs'),
+};
+
 // AI history
 export const getAIHistory = (feature, limit = 25) => {
   const qs = new URLSearchParams({

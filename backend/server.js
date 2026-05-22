@@ -51,6 +51,11 @@ app.get('/api/health', (req, res) => {
 // Auth (public)
 app.use('/api/auth', require('./routes/auth'));
 
+// Pass 7 — Public (unauthenticated) read-only dashboard surface.
+// Mounted BEFORE the Bearer-token middleware on purpose.
+// Exposes only aggregate, non-PII counts. See routes/publicDashboard.js.
+app.use('/api/public/dashboard', require('./routes/publicDashboard'));
+
 // Everything below this line requires a Bearer token.
 app.use('/api', authenticateToken);
 
@@ -87,6 +92,12 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Custom views (maps + charts)
 app.use('/api/custom-views', require('./routes/customViews'));
+
+// Pass 7 — full backlog implementation
+// Equity-by-neighborhood operator-curated dataset (backs /api/ai/equity-response-time).
+app.use('/api/equity-neighborhoods', require('./routes/equityNeighborhoods'));
+// NEEDS-CREDS integration stubs (NTCIP, CAD, V2X, Census) — all return 503 by design.
+app.use('/api/integrations',         require('./routes/integrations'));
 
 // Expose onIncidentCreated for downstream wiring if needed
 module.exports = { onIncidentCreated };

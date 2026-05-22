@@ -53,6 +53,18 @@ import { getToken } from './services/api';
 
 import './App.css';
 
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+// Pass 7 — full backlog implementation
+import AICongestionForecastPage          from './pages/AICongestionForecastPage';
+import AISignalTimingOptimizePage        from './pages/AISignalTimingOptimizePage';
+import AIEmergencyPreemptSequencePage    from './pages/AIEmergencyPreemptSequencePage';
+import AIIncidentResponseCoordinatePage  from './pages/AIIncidentResponseCoordinatePage';
+import AIEquityResponseTimePage          from './pages/AIEquityResponseTimePage';
+import EquityNeighborhoodsPage           from './pages/EquityNeighborhoodsPage';
+import PublicDashboardPage               from './pages/PublicDashboardPage';
+
 function RequireAuth({ children }) {
   const location = useLocation();
   if (!getToken()) {
@@ -69,6 +81,9 @@ function ShellRoutes() {
         <Topbar />
         <div style={{ padding: '24px 32px' }}>
           <Routes>
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/intersections"           element={<IntersectionsPage />} />
@@ -107,6 +122,14 @@ function ShellRoutes() {
             <Route path="/ai/performance-anomaly"      element={<AIPerformanceAnomalyPage />} />
             <Route path="/ai/vendor-quality-score"     element={<AIVendorQualityScorePage />} />
 
+            {/* Pass 7 — full backlog AI verbs */}
+            <Route path="/ai/congestion-forecast"          element={<AICongestionForecastPage />} />
+            <Route path="/ai/signal-timing-optimize"       element={<AISignalTimingOptimizePage />} />
+            <Route path="/ai/emergency-preempt-sequence"   element={<AIEmergencyPreemptSequencePage />} />
+            <Route path="/ai/incident-response-coordinate" element={<AIIncidentResponseCoordinatePage />} />
+            <Route path="/ai/equity-response-time"         element={<AIEquityResponseTimePage />} />
+            <Route path="/equity-neighborhoods"            element={<EquityNeighborhoodsPage />} />
+
             <Route path="/webhooks" element={<WebhooksPage />} />
 
             <Route path="/custom-views" element={<CustomViewsPage />} />
@@ -124,6 +147,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        {/* Pass 7 — public unauthenticated dashboard surface */}
+        <Route path="/public" element={<PublicDashboardPage />} />
         <Route
           path="/*"
           element={

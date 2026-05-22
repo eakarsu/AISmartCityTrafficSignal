@@ -41,6 +41,8 @@ const WORKZONE_GROUP = [
 const GOVERNANCE_GROUP = [
   { to: '/performance-metrics',     label: 'Performance Metrics' },
   { to: '/audit-log',               label: 'Audit Log' },
+  // Pass 7 — equity-by-neighborhood operator-curated dataset
+  { to: '/equity-neighborhoods',    label: 'Equity Neighborhoods' },
 ];
 
 // AI Operations (live decision-support)
@@ -53,6 +55,11 @@ const AI_OPS = [
   { to: '/ai/corridor-coordination',    label: 'AI · Corridor Coordination' },
   { to: '/ai/intersection-prioritize',  label: 'AI · Intersection Prioritize' },
   { to: '/ai/work-order-draft',         label: 'AI · Work Order Draft' },
+  // Pass 7 — full backlog AI verbs (advisory only)
+  { to: '/ai/congestion-forecast',          label: 'AI · Congestion Forecast' },
+  { to: '/ai/signal-timing-optimize',       label: 'AI · Signal Timing Optimize' },
+  { to: '/ai/emergency-preempt-sequence',   label: 'AI · Emergency Preempt Sequence' },
+  { to: '/ai/incident-response-coordinate', label: 'AI · Incident Response Coordinate' },
 ];
 
 // AI Reporting (analysis / briefs)
@@ -60,6 +67,7 @@ const AI_REPORT = [
   { to: '/ai/executive-brief',          label: 'AI · Executive Brief' },
   { to: '/ai/signal-health-prognostic', label: 'AI · Signal Health Prognostic' },
   { to: '/ai/equity-impact-brief',      label: 'AI · Equity Impact' },
+  { to: '/ai/equity-response-time',     label: 'AI · Equity Response Time' },
   { to: '/ai/emission-impact-estimate', label: 'AI · Emission Impact' },
   { to: '/ai/citizen-complaint-summary',label: 'AI · Citizen Complaints' },
   { to: '/ai/sensor-anomaly',           label: 'AI · Sensor Anomaly' },
