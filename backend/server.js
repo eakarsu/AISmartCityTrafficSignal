@@ -58,6 +58,10 @@ app.use('/api/public/dashboard', require('./routes/publicDashboard'));
 
 // Everything below this line requires a Bearer token.
 app.use('/api', authenticateToken);
+app.use('/api/traffic-workflow', require('./routes/trafficWorkflow'));
+app.use(/^\/api\/(?:gap-|ai(?:\/|$)|ai-)/, (req, res) => res.status(503).json({
+  error: 'Generated AI routes are quarantined; use /api/traffic-workflow', retryable: false,
+}));
 
 // 18 CRUD entities
 app.use('/api/intersections',           require('./routes/intersections'));
@@ -99,9 +103,13 @@ app.use('/api/equity-neighborhoods', require('./routes/equityNeighborhoods'));
 // NEEDS-CREDS integration stubs (NTCIP, CAD, V2X, Census) — all return 503 by design.
 app.use('/api/integrations',         require('./routes/integrations'));
 
+app.use((err, req, res, next) => {
+  console.error('Unhandled request error:', err.message);
+  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
+
 // Expose onIncidentCreated for downstream wiring if needed
 module.exports = { onIncidentCreated };
 
-app.listen(PORT, () => {
-  console.log(`\nAI Smart-City Traffic Signal API running on http://localhost:${PORT}\n`);
-});
+async function start(){const result=await pool.query("SELECT to_regclass('public.traffic_optimization_cases') AS workflow_table");if(!result.rows[0].workflow_table)throw new Error('Database migrations are required; run ./scripts/migrate.sh');app.listen(PORT,()=>console.log(`AI Smart-City Traffic Signal API running on http://localhost:${PORT}`));}
+start().catch(error=>{console.error('Failed to start server:',error.message);process.exitCode=1;});

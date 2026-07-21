@@ -6,12 +6,14 @@
 CREATE TABLE IF NOT EXISTS users (
   id              SERIAL PRIMARY KEY,
   email           VARCHAR(150) UNIQUE NOT NULL,
-  password        VARCHAR(120) NOT NULL,
+  password        VARCHAR(255) NOT NULL,
   name            VARCHAR(120),
   role            VARCHAR(20) DEFAULT 'viewer',  -- admin|ops|viewer
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE users ALTER COLUMN password TYPE VARCHAR(255);
 
 -- ─────────────────────────────────────────────
 -- AI results

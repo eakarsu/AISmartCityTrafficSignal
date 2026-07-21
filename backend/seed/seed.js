@@ -1,14 +1,24 @@
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const crypto = require('crypto');
+const { promisify } = require('util');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+if (process.env.ALLOW_DESTRUCTIVE_SEED !== 'true') throw new Error('Set ALLOW_DESTRUCTIVE_SEED=true to run the destructive seed explicitly');
+if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
+const demoFallback = process.env.ALLOW_DEMO_SEED === 'true' && process.env.NODE_ENV !== 'production'
+  ? process.env.DEMO_PASSWORD || process.env.SEED_ADMIN_PASSWORD
+  : '';
+const seedPasswords = ['SEED_ADMIN_PASSWORD','SEED_OPS_PASSWORD','SEED_VIEWER_PASSWORD'].map((name) => {
+  const password = process.env[name] || demoFallback;
+  if (!password || password.length < 12) throw new Error(`${name} must contain at least 12 characters`);
+  return password;
+});
+const scrypt = promisify(crypto.scrypt);
+async function encodePassword(password) { const salt=crypto.randomBytes(16).toString('hex'); const hash=await scrypt(password,salt,64); return `$scrypt$${salt}$${hash.toString('hex')}`; }
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'traffic_signal',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  connectionString: process.env.DATABASE_URL,
 });
 
 async function run() {
@@ -50,9 +60,9 @@ async function run() {
     // ─── Users (3) ───────────────────────────
     console.log('[seed] inserting users...');
     const users = [
-      ['admin@trafficsignal.io',  'admin123',  'Traffic Admin',   'admin'],
-      ['ops@trafficsignal.io',    'ops123',    'Signals Ops',     'ops'],
-      ['viewer@trafficsignal.io', 'viewer123', 'Traffic Viewer',  'viewer'],
+      [process.env.ADMIN_EMAIL || process.env.DEMO_EMAIL || 'admin@trafficsignal.invalid', await encodePassword(seedPasswords[0]), 'Traffic Admin', 'admin'],
+      ['ops@trafficsignal.invalid',    await encodePassword(seedPasswords[1]), 'Signals Ops',   'ops'],
+      ['viewer@trafficsignal.invalid', await encodePassword(seedPasswords[2]), 'Traffic Viewer','viewer'],
     ];
     for (const u of users) {
       await client.query(
