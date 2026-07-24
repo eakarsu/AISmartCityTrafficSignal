@@ -58,9 +58,11 @@ function callOpenRouter(systemPrompt, userPrompt) {
       max_tokens: 2000,
     });
 
+    const baseUrl = new URL(process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1');
     const options = {
-      hostname: 'openrouter.ai',
-      path: '/api/v1/chat/completions',
+      hostname: baseUrl.hostname,
+      port: baseUrl.port || 443,
+      path: `${baseUrl.pathname.replace(/\/$/, '')}/chat/completions`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -59,7 +59,7 @@ app.use('/api/public/dashboard', require('./routes/publicDashboard'));
 // Everything below this line requires a Bearer token.
 app.use('/api', authenticateToken);
 app.use('/api/traffic-workflow', require('./routes/trafficWorkflow'));
-app.use(/^\/api\/(?:gap-|ai(?:\/|$)|ai-)/, (req, res) => res.status(503).json({
+app.use(/^\/api\/(?:gap-|ai-)/, (req, res) => res.status(503).json({
   error: 'Generated AI routes are quarantined; use /api/traffic-workflow', retryable: false,
 }));
 

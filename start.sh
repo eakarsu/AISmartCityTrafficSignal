@@ -2,6 +2,7 @@
 set -euo pipefail
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; cd "$project_dir"
 test -f .env || { echo '.env is required (copy .env.example)' >&2; exit 1; }
+set -a; source .env; set +a
 test -d backend/node_modules || { echo 'Backend dependencies are missing; install them explicitly before starting' >&2; exit 1; }
 
 if [[ "${NODE_ENV:-}" == "test" ]]; then
@@ -13,5 +14,5 @@ fi
 test -d frontend/node_modules || { echo 'Frontend dependencies are missing; install them explicitly before starting' >&2; exit 1; }
 mode="${1:-all}"; pids=(); trap 'for pid in "${pids[@]:-}"; do kill "$pid" 2>/dev/null || true; done' EXIT INT TERM
 if [[ "$mode" == backend || "$mode" == all ]]; then node backend/server.js & pids+=("$!"); fi
-if [[ "$mode" == frontend || "$mode" == all ]]; then BROWSER=none PORT="${FRONTEND_PORT:-3000}" npm --prefix frontend start & pids+=("$!"); fi
+if [[ "$mode" == frontend || "$mode" == all ]]; then BROWSER=none PORT="${FRONTEND_PORT:-3000}" REACT_APP_API_BASE_URL="http://127.0.0.1:${BACKEND_PORT:-3089}/api" npm --prefix frontend start & pids+=("$!"); fi
 [[ ${#pids[@]} -gt 0 ]] || { echo 'Usage: ./start.sh [all|backend|frontend]' >&2; exit 2; }; wait
