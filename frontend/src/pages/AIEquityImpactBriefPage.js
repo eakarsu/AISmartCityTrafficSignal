@@ -14,7 +14,7 @@ export default function AIEquityImpactBriefPage() {
         { key: 'demographics', label: 'Demographics / Corridor Context', type: 'textarea',
           placeholder: 'Census tract notes, no-car households, senior population, etc.' },
       ]}
-      run={(v) => aiEquityImpactBrief({ policy: v.policy, demographics: { notes: v.demographics } })}
+      run={(v, requestOptions) => aiEquityImpactBrief({ policy: v.policy, demographics: { notes: v.demographics } }, requestOptions)}
     />
   );
 }

@@ -13,11 +13,11 @@ export default function AICongestionForecastPage() {
         { key: 'horizon_minutes',  label: 'Horizon (minutes)', type: 'number', placeholder: '60' },
         { key: 'notes',            label: 'Notes', type: 'textarea', placeholder: 'Context: peak window, upcoming event, weather, etc.' },
       ]}
-      run={(v) => aiCongestionForecast({
+      run={(v, requestOptions) => aiCongestionForecast({
         scope: v.scope,
         horizon_minutes: v.horizon_minutes ? Number(v.horizon_minutes) : 60,
         notes: v.notes,
-      })}
+      }, requestOptions)}
     />
   );
 }

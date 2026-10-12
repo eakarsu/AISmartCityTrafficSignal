@@ -9,7 +9,7 @@ export default function AISensorAnomalyPage() {
       feature="sensor-anomaly"
       subtitle="Find anomalous detector / sensor behavior in the current fleet."
       inputs={[]}
-      run={() => aiSensorAnomaly({})}
+      run={(_values, requestOptions) => aiSensorAnomaly({}, requestOptions)}
       buttonLabel="Scan Sensors"
     />
   );

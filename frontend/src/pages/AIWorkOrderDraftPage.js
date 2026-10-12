@@ -12,7 +12,7 @@ export default function AIWorkOrderDraftPage() {
         { key: 'target',  label: 'Target (intersection / device / location)', placeholder: 'e.g. INT-007 — Hospital Way & Emergency Ln' },
         { key: 'problem', label: 'Problem Description', type: 'textarea', placeholder: 'Describe what is wrong, when it was noticed, and any reported symptoms.' },
       ]}
-      run={(v) => aiWorkOrderDraft({ target: v.target, problem: v.problem })}
+      run={(v, requestOptions) => aiWorkOrderDraft({ target: v.target, problem: v.problem }, requestOptions)}
     />
   );
 }

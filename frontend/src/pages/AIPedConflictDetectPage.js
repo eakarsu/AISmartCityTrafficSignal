@@ -12,7 +12,7 @@ export default function AIPedConflictDetectPage() {
         { key: 'intersection_id', label: 'Intersection ID', placeholder: 'e.g. INT-005' },
         { key: 'notes',           label: 'Context Notes',   type: 'textarea' },
       ]}
-      run={(v) => aiPedConflictDetect({ intersection_id: v.intersection_id, notes: v.notes })}
+      run={(v, requestOptions) => aiPedConflictDetect({ intersection_id: v.intersection_id, notes: v.notes }, requestOptions)}
     />
   );
 }

@@ -131,8 +131,7 @@ export const login = (email, password) =>
 export const getMe = () => request('/auth/me');
 
 // AI endpoints (16 verbs)
-const aiPost = (verb) => (body) =>
-  request(`/ai/${verb}`, { method: 'POST', body: JSON.stringify(body || {}) });
+const aiPost = (verb) => (body, options = {}) => request(`/ai/${verb}`, { ...options, method: 'POST', body: JSON.stringify(body || {}) });
 
 export const aiIncidentAwareRetime    = aiPost('incident-aware-retime');
 export const aiPedConflictDetect      = aiPost('ped-conflict-detect');

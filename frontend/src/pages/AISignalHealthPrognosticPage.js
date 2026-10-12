@@ -9,7 +9,7 @@ export default function AISignalHealthPrognosticPage() {
       feature="signal-health-prognostic"
       subtitle="Forecast controller / cabinet / sensor failures across the network."
       inputs={[]}
-      run={() => aiSignalHealthPrognostic({})}
+      run={(_values, requestOptions) => aiSignalHealthPrognostic({}, requestOptions)}
       buttonLabel="Run Prognostic"
     />
   );

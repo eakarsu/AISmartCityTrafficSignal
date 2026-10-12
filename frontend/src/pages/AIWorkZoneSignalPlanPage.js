@@ -12,7 +12,7 @@ export default function AIWorkZoneSignalPlanPage() {
         { key: 'zone_id', label: 'Work Zone ID', placeholder: 'e.g. WZ-0001' },
         { key: 'notes',   label: 'Notes',         type: 'textarea' },
       ]}
-      run={(v) => aiWorkZoneSignalPlan({ zone_id: v.zone_id, notes: v.notes })}
+      run={(v, requestOptions) => aiWorkZoneSignalPlan({ zone_id: v.zone_id, notes: v.notes }, requestOptions)}
     />
   );
 }

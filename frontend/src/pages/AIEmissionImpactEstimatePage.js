@@ -12,7 +12,7 @@ export default function AIEmissionImpactEstimatePage() {
         { key: 'corridor', label: 'Corridor', placeholder: 'e.g. Downtown Core Corridor' },
         { key: 'notes',    label: 'Notes',     type: 'textarea' },
       ]}
-      run={(v) => aiEmissionImpactEstimate({ corridor: v.corridor, notes: v.notes })}
+      run={(v, requestOptions) => aiEmissionImpactEstimate({ corridor: v.corridor, notes: v.notes }, requestOptions)}
     />
   );
 }

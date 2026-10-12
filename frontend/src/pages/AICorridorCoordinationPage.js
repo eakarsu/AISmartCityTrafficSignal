@@ -10,9 +10,9 @@ export default function AICorridorCoordinationPage() {
       subtitle="Recommend cycle length and green-wave offsets along a corridor."
       inputs={[
         { key: 'corridor',         label: 'Corridor', placeholder: 'e.g. Downtown Core Corridor' },
-        { key: 'intersection_ids', label: 'Intersection IDs (comma-separated)', placeholder: 'INT-001,INT-002,INT-014,INT-015' },
+        { key: 'intersection_ids', label: 'Intersection IDs (comma-separated)', type: 'select', requiresExistingRecord: true },
       ]}
-      run={(v) => aiCorridorCoordination({ corridor: v.corridor, intersection_ids: v.intersection_ids })}
+      run={(v, requestOptions) => aiCorridorCoordination({ corridor: v.corridor, intersection_ids: v.intersection_ids }, requestOptions)}
     />
   );
 }

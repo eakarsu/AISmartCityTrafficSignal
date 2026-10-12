@@ -12,7 +12,7 @@ export default function AICitizenComplaintSummaryPage() {
         { key: 'complaints', label: 'Complaints (one per line)', type: 'textarea',
           placeholder: 'Paste a batch of citizen-reported issues.' },
       ]}
-      run={(v) => aiCitizenComplaintSummary({ complaints: v.complaints })}
+      run={(v, requestOptions) => aiCitizenComplaintSummary({ complaints: v.complaints }, requestOptions)}
     />
   );
 }

@@ -13,7 +13,7 @@ export default function AIIncidentAwareRetimePage() {
         { key: 'intersection_id', label: 'Intersection ID',        placeholder: 'e.g. INT-001' },
         { key: 'notes',           label: 'Notes',                  type: 'textarea', placeholder: 'Free-form context (lane blockage, cleanup ETA, ROE).' },
       ]}
-      run={(v) => aiIncidentAwareRetime({ incident_id: v.incident_id, intersection_id: v.intersection_id, notes: v.notes })}
+      run={(v, requestOptions) => aiIncidentAwareRetime({ incident_id: v.incident_id, intersection_id: v.intersection_id, notes: v.notes }, requestOptions)}
     />
   );
 }

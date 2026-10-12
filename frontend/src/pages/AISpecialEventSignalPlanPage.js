@@ -12,7 +12,7 @@ export default function AISpecialEventSignalPlanPage() {
         { key: 'event_id', label: 'Event ID', placeholder: 'e.g. EVT-0001' },
         { key: 'notes',    label: 'Notes',     type: 'textarea' },
       ]}
-      run={(v) => aiSpecialEventSignalPlan({ event_id: v.event_id, notes: v.notes })}
+      run={(v, requestOptions) => aiSpecialEventSignalPlan({ event_id: v.event_id, notes: v.notes }, requestOptions)}
     />
   );
 }

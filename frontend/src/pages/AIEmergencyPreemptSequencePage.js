@@ -12,16 +12,16 @@ export default function AIEmergencyPreemptSequencePage() {
         { key: 'ems_route_id',     label: 'EMS Route ID',     placeholder: 'e.g. EMS-001' },
         { key: 'origin',           label: 'Origin',           placeholder: 'e.g. Fire Station 3' },
         { key: 'destination',      label: 'Destination',      placeholder: 'e.g. INT-007 Hospital Way' },
-        { key: 'intersection_ids', label: 'Intersection IDs (comma-sep)', placeholder: 'e.g. INT-001,INT-002,INT-007' },
+        { key: 'intersection_ids', label: 'Intersection IDs (comma-sep)', type: 'select', requiresExistingRecord: true },
         { key: 'notes',            label: 'Notes', type: 'textarea', placeholder: 'Code level, vehicle type, mutual aid notes' },
       ]}
-      run={(v) => aiEmergencyPreemptSequence({
+      run={(v, requestOptions) => aiEmergencyPreemptSequence({
         ems_route_id: v.ems_route_id,
         origin: v.origin,
         destination: v.destination,
         intersection_ids: v.intersection_ids,
         notes: v.notes,
-      })}
+      }, requestOptions)}
     />
   );
 }

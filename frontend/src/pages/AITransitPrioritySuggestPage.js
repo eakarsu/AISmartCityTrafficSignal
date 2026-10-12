@@ -12,7 +12,7 @@ export default function AITransitPrioritySuggestPage() {
         { key: 'route', label: 'Route', placeholder: 'e.g. Route 15 BRT' },
         { key: 'notes', label: 'Notes', type: 'textarea' },
       ]}
-      run={(v) => aiTransitPrioritySuggest({ route: v.route, notes: v.notes })}
+      run={(v, requestOptions) => aiTransitPrioritySuggest({ route: v.route, notes: v.notes }, requestOptions)}
     />
   );
 }

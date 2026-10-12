@@ -9,7 +9,7 @@ export default function AIPerformanceAnomalyPage() {
       feature="performance-anomaly"
       subtitle="Identify off-target intersection KPIs from the current sample."
       inputs={[]}
-      run={() => aiPerformanceAnomaly({})}
+      run={(_values, requestOptions) => aiPerformanceAnomaly({}, requestOptions)}
       buttonLabel="Scan KPIs"
     />
   );

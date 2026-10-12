@@ -13,11 +13,11 @@ export default function AISignalTimingOptimizePage() {
         { key: 'time_of_day_window', label: 'Time-of-day window', placeholder: 'e.g. AM peak 07:00-09:30' },
         { key: 'notes',              label: 'Notes', type: 'textarea', placeholder: 'Demand pattern, ped concerns, transit priority, etc.' },
       ]}
-      run={(v) => aiSignalTimingOptimize({
+      run={(v, requestOptions) => aiSignalTimingOptimize({
         intersection_id: v.intersection_id,
         time_of_day_window: v.time_of_day_window,
         notes: v.notes,
-      })}
+      }, requestOptions)}
     />
   );
 }

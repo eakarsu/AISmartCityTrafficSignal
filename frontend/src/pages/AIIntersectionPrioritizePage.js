@@ -9,7 +9,7 @@ export default function AIIntersectionPrioritizePage() {
       feature="intersection-prioritize"
       subtitle="Rank intersections in the current network for retiming attention."
       inputs={[]}
-      run={() => aiIntersectionPrioritize({})}
+      run={(_values, requestOptions) => aiIntersectionPrioritize({}, requestOptions)}
       buttonLabel="Rank Intersections"
     />
   );

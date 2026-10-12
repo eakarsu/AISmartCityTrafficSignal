@@ -12,7 +12,7 @@ export default function AIIncidentResponseCoordinatePage() {
         { key: 'incident_id', label: 'Incident ID', placeholder: 'e.g. INC-0001' },
         { key: 'notes',       label: 'Notes', type: 'textarea', placeholder: 'Lane blockage, agencies on scene, ETA to clear, etc.' },
       ]}
-      run={(v) => aiIncidentResponseCoordinate({ incident_id: v.incident_id, notes: v.notes })}
+      run={(v, requestOptions) => aiIncidentResponseCoordinate({ incident_id: v.incident_id, notes: v.notes }, requestOptions)}
     />
   );
 }

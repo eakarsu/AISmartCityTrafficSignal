@@ -9,7 +9,7 @@ export default function AIVendorQualityScorePage() {
       feature="vendor-quality-score"
       subtitle="Score traffic-signal hardware vendors using current field history."
       inputs={[]}
-      run={() => aiVendorQualityScore({})}
+      run={(_values, requestOptions) => aiVendorQualityScore({}, requestOptions)}
       buttonLabel="Score Vendors"
     />
   );

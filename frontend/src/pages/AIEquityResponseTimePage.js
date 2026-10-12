@@ -12,7 +12,7 @@ export default function AIEquityResponseTimePage() {
         { key: 'focus', label: 'Focus filter', type: 'select', options: ['all', 'low_income', 'no_vehicle', 'senior', 'school'] },
         { key: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Optional bias / framing for the analysis.' },
       ]}
-      run={(v) => aiEquityResponseTime({ focus: v.focus, notes: v.notes })}
+      run={(v, requestOptions) => aiEquityResponseTime({ focus: v.focus, notes: v.notes }, requestOptions)}
     />
   );
 }
